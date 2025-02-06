@@ -11,6 +11,7 @@ class TreapNode {
     int priority_;
     int key_;
 
+
 public:
     TreapNode();
     TreapNode(int priority, int key);
@@ -20,6 +21,7 @@ public:
     void tryToHang(TreapNode **root, TreapNode *newChild);
     void hangLeft(TreapNode *child);
     void hangRight(TreapNode *child);
+    void detach();
 
     void print();
 
@@ -49,14 +51,16 @@ class Treap {
 private:
     TreapNode *root_;
     TreapNode * find_helper(int key, TreapNode *node);
-    FRIEND_TEST(TreapTest, TreapBuilds);
+    std::pair<Treap *, Treap *> **split_helper(int k);
     friend class TreapTest;
 public:
     Treap();
     Treap(TreapNode *root);
     Treap(std::map<int, int> *keysToPriority);
+    TreapNode *root() { return root_; }
     TreapNode *find(int key);
     std::pair<Treap *, Treap *> * split(int k);
+    void merge(Treap *);
     void insert(int priority, int key);
     void print();
 };

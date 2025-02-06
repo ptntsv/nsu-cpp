@@ -30,14 +30,14 @@ void TreapNode::tryToHang(TreapNode **root, TreapNode *newChild) {
         return;
     if (newChild->priority_ < priority_) {
         if (*root == this) {
-            newChild->hang(&newChild->left_, this);
+            newChild->hangLeft(this);
             *root = newChild;
             return;
         }
         parent_->tryToHang(root, newChild);
     } else {
-        newChild->hang(&newChild->left_, this->right_);
-        this->hang(&this->right_, newChild);
+        newChild->hangLeft(this->right_);
+        this->hangRight(newChild);
     }
 }
 
@@ -46,6 +46,16 @@ void TreapNode::hangLeft(TreapNode *child) {
 }
 void TreapNode::hangRight(TreapNode *child) {
     hang(&right_, child);
+}
+
+void TreapNode::detach() {
+    if (parent_) {
+        if (parent_->left() == this)
+            parent_->left_ = nullptr;
+        else
+            parent_->right_ = nullptr;
+    }
+    parent_ = nullptr;
 }
 
 void TreapNode::print() {

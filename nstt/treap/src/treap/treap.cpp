@@ -48,18 +48,77 @@ TreapNode * Treap::find(int key) {
     return find_helper(key, root_);
 }
 
-std::pair<Treap *, Treap *> * Treap::split(int k) {
+// Review it pls...
+std::pair<Treap *, Treap *> ** Treap::split_helper(int k) {
     if (root_->key() < k) {
-        Treap *tmp = new Treap(root_->right());
-        std::pair<Treap *, Treap *> *R = tmp->split(k);
-        if (R->second) {
-            R->second->root_->hangLeft(nullptr);
+        std::pair<Treap *, Treap *> **R;
+        if (root_->right()) {
+            Treap *subTreap = new Treap(root_->right());
+            R = subTreap->split_helper(k);
+            if ((*R)->second) {
+                (*R)->second->root_->detach();
+                if ((*R)->first)
+                    (*R)->first->root_->detach();
+            }
+            if ((*R)->first)
+                root_->hangRight((*R)->first->root_);
+            delete (*R)->first;
+            (*R)->first = this;
+            return R;
         }
-        root_->hangRight(R->first->root_);
-        std::pair<Treap *, Treap *> *res = new std::pair<Treap *, Treap *> {this, R->second};
-        delete tmp;
-        delete R;
-        return res;
+        R = new std::pair<Treap *, Treap *> *;
+        *R = new std::pair<Treap *, Treap *> (this, nullptr);
+        return R;
     }
-    return nullptr;
+    std::pair<Treap *, Treap *> **L;
+    if (root_->left()) {
+        Treap *subTreap = new Treap(root_->left());
+        L = subTreap->split_helper(k);
+        if ((*L)->first) {
+            (*L)->first->root_->detach();
+            if ((*L)->second)
+                (*L)->second->root_->detach();
+        }
+        if ((*L)->second)
+            root_->hangLeft((*L)->second->root_);
+
+        delete (*L)->second;
+        (*L)->second = this;
+        return L;
+    }
+    L = new std::pair<Treap *, Treap *> *;
+    *L = new std::pair<Treap *, Treap *> (nullptr, this);
+    return L;
+}
+
+std::pair<Treap *, Treap *> * Treap::split(int k) {
+    std::pair<Treap *, Treap *> ** pres = split_helper(k);
+    std::pair<Treap *, Treap *> * res = *pres;
+    delete pres;
+    return res;
+}
+
+void Treap::merge(Treap *t) {
+    if (!root_) {
+        root_ = t->root_;
+    } else if(!t->root_) {
+        return;
+    }
+    if (root_->priority() < t->root_->priority()) {
+        Treap *subTreap = new Treap(root_->right());
+        subTreap->merge(t);
+        root_->hangRight(subTreap->root());
+        delete subTreap;
+        return;
+    }
+    if (!t->root_->left()) {
+        t->root_->hangLeft(root_);
+        root_ = t->root_;
+        return;
+    }
+    Treap *subTreap = new Treap(t->root_->left());
+    merge(subTreap);
+    t->root_->left()->detach();
+    root_ = t->root_;
+    delete subTreap;
 }

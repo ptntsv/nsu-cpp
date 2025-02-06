@@ -34,15 +34,54 @@ protected:
         t = new Treap(defmap);
     }
     ~TreapTest() {
-        delete t->root_;
-        delete t;
         delete defmap;
     }
 };
 
 TEST_F(TreapTest, TreapBuilds) {
-    t->print();
-    TreapNode *eight = t->find(8);
+    ASSERT_EQ(isValid(t->root()), true);
+    delete t->root();
+    delete t;
+}
+
+TEST_F(TreapTest, TreapSplits) {
     std::pair<Treap *, Treap *> *two = t->split(20);
-    ASSERT_EQ(isValid(t->root_), true);
+    if (two->first) {
+        delete two->first->root();
+        delete two->first;
+    }
+    if (two->second) {
+        delete two->second->root();
+        delete two->second;
+    }
+    delete two;
+}
+
+TEST_F(TreapTest, TreapMerges20) {
+    std::pair<Treap *, Treap *> *two = t->split(20);
+    two->first->merge(two->second);
+
+    if (two->first) {
+        delete two->first->root();
+        delete two->first;
+    }
+    if (two->second) {
+        delete two->second;
+    }
+    delete two;
+}
+
+TEST_F(TreapTest, TreapMerges16) {
+    std::pair<Treap *, Treap *> *two = t->split(16);
+    two->first->merge(two->second);
+
+    two->first->print();
+    if (two->first) {
+        delete two->first->root();
+        delete two->first;
+    }
+    if (two->second) {
+        delete two->second;
+    }
+    delete two;
 }
