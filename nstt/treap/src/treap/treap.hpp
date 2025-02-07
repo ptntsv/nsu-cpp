@@ -58,10 +58,12 @@ public:
     Treap(TreapNode *root);
     Treap(std::map<int, int> *keysToPriority);
     TreapNode *root() { return root_; }
-    TreapNode *find(int key);
+    bool empty(); 
     std::pair<Treap *, Treap *> * split(int k);
     void merge(Treap *);
-    void insert(int priority, int key);
+    void insert(TreapNode *node);
+    void remove(int k);
+    TreapNode *find(int key);
     void print();
 };
 

@@ -5,6 +5,7 @@
 TreapNode::TreapNode() {
     left_ = nullptr;
     right_ = nullptr;
+    parent_ = nullptr;
 }
 
 TreapNode::TreapNode(int priority, int key) : TreapNode() {

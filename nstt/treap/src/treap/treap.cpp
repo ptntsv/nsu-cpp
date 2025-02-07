@@ -1,12 +1,49 @@
 #include "treap.hpp"
 
 #include <cstdlib>
-#include <iostream>
 #include <map>
+#include <assert.h>
 
 using namespace std;
 
-void Treap::insert(int priority, int key) {
+void Treap::remove(int k) {
+    std::pair<Treap *, Treap *> *ts = split(k);
+    if (ts->second->empty())
+        return;
+    TreapNode *needle = ts->second->find(k);
+    assert(
+            !needle->left() &&
+            (!needle->parent() || needle->parent()->left() == needle)
+    );
+    if (!needle->parent()) {
+        ts->second->root_ = needle->right();
+        if (needle->right())
+            needle->right()->detach();
+    } else {
+        needle->parent()->hangLeft(needle->right());
+    }
+    needle->hangRight(nullptr);
+    ts->first->merge(ts->second);
+    root_ = ts->first->root();
+
+    assert(!needle->left() && !needle->right());
+    delete needle;
+    delete ts->first;
+    delete ts->second;
+    delete ts;
+}
+void Treap::insert(TreapNode *node) {
+    if (!node)
+        return;
+    std::pair<Treap *, Treap *> *ts = split(node->key());
+    Treap *sub = new Treap(node);
+    ts->first->merge(sub);
+    ts->first->merge(ts->second);
+    root_ = ts->first->root_;
+    delete sub;
+    delete ts->first;
+    delete ts->second;
+    delete ts;
 }
 
 Treap::Treap() {
@@ -32,7 +69,8 @@ Treap::Treap(map<int, int> *keyToPriority) : Treap() {
 }
 
 void Treap::print() {
-    root_->print();
+    if (!empty())
+        root_->print();
 }
 
 TreapNode * Treap::find_helper(int key, TreapNode *node) {
@@ -49,45 +87,48 @@ TreapNode * Treap::find(int key) {
 }
 
 // Review it pls...
+// TODO: give preallocated pair as argument
 std::pair<Treap *, Treap *> ** Treap::split_helper(int k) {
     if (root_->key() < k) {
         std::pair<Treap *, Treap *> **R;
         if (root_->right()) {
             Treap *subTreap = new Treap(root_->right());
             R = subTreap->split_helper(k);
-            if ((*R)->second) {
+            if (!(*R)->second->empty()) {
                 (*R)->second->root_->detach();
-                if ((*R)->first)
+                if (!(*R)->first->empty())
                     (*R)->first->root_->detach();
             }
-            if ((*R)->first)
+            if (!(*R)->first->empty())
                 root_->hangRight((*R)->first->root_);
             delete (*R)->first;
-            (*R)->first = this;
+            (*R)->first = new Treap(root());
+            delete subTreap;
             return R;
         }
         R = new std::pair<Treap *, Treap *> *;
-        *R = new std::pair<Treap *, Treap *> (this, nullptr);
+        *R = new std::pair<Treap *, Treap *> (new Treap(root()), new Treap());
         return R;
     }
     std::pair<Treap *, Treap *> **L;
     if (root_->left()) {
         Treap *subTreap = new Treap(root_->left());
         L = subTreap->split_helper(k);
-        if ((*L)->first) {
+        if (!(*L)->first->empty()) {
             (*L)->first->root_->detach();
-            if ((*L)->second)
+            if (!(*L)->second->empty())
                 (*L)->second->root_->detach();
         }
-        if ((*L)->second)
+        if (!(*L)->second->empty())
             root_->hangLeft((*L)->second->root_);
 
         delete (*L)->second;
-        (*L)->second = this;
+        (*L)->second = new Treap(root());
+        delete subTreap;
         return L;
     }
     L = new std::pair<Treap *, Treap *> *;
-    *L = new std::pair<Treap *, Treap *> (nullptr, this);
+    *L = new std::pair<Treap *, Treap *> (new Treap(), new Treap(root()));
     return L;
 }
 
@@ -99,11 +140,12 @@ std::pair<Treap *, Treap *> * Treap::split(int k) {
 }
 
 void Treap::merge(Treap *t) {
-    if (!root_) {
+    if (empty()) {
         root_ = t->root_;
-    } else if(!t->root_) {
         return;
     }
+    if(t->empty())
+        return;
     if (root_->priority() < t->root_->priority()) {
         Treap *subTreap = new Treap(root_->right());
         subTreap->merge(t);
@@ -111,14 +153,13 @@ void Treap::merge(Treap *t) {
         delete subTreap;
         return;
     }
-    if (!t->root_->left()) {
-        t->root_->hangLeft(root_);
-        root_ = t->root_;
-        return;
-    }
     Treap *subTreap = new Treap(t->root_->left());
     merge(subTreap);
-    t->root_->left()->detach();
+    t->root_->hangLeft(root());
     root_ = t->root_;
     delete subTreap;
 }
+
+bool Treap::empty() {
+    return root_ == nullptr;
+} 
