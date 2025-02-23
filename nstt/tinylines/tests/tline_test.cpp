@@ -23,6 +23,12 @@ TEST(LineTest, LinesNotIntersect) {
     EXPECT_EQ(l1.intersects(l2), false);
 }
 
+TEST(LineTest, LinesNotIntersectCollinear) {
+    Line l1(5, -1, 0);
+    Line l2(125, -25, 10);
+    EXPECT_EQ(l1.intersects(l2), false);
+}
+
 TEST(LineTest, LinesIntersectWithZeroes) {
     Line l1(1, 0, 128);
     Line l2(1, -1, 10);

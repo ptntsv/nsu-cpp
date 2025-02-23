@@ -1,24 +1,38 @@
-#include "treap.hpp"
-
 #include <iostream>
 
-TreapNode::TreapNode() {
-    left_ = nullptr;
-    right_ = nullptr;
-    parent_ = nullptr;
-}
+#include "treap.hpp"
 
-TreapNode::TreapNode(int priority, int key) : TreapNode() {
-    key_ = key;
-    priority_ = priority;
-}
+Treap::TreapNode::TreapNode() {}
 
-TreapNode::~TreapNode() {
+Treap::TreapNode::TreapNode(int priority, int key)
+    : key_(key), priority_(priority) {}
+
+Treap::TreapNode::~TreapNode() {
     delete this->left_;
     delete this->right_;
 }
 
-void TreapNode::hang(TreapNode **dst, TreapNode *newChild) {
+bool Treap::TreapNode::operator==(const TreapNode &other) {
+    return key_ == other.key_ && priority_ == other.priority_;
+}
+
+bool Treap::TreapNode::operator!=(const TreapNode &other) {
+    return !(*this == other);
+}
+
+Treap::TreapNode::TreapNode(const TreapNode &other)
+    : key_(other.key_), priority_(other.priority_) {
+    if (other.left_) {
+        left_ = new TreapNode(*other.left_);
+        left_->parent_ = this;
+    }
+    if (other.right_) {
+        right_ = new TreapNode(*other.right_);
+        right_->parent_ = this;
+    }
+}
+
+void Treap::TreapNode::hang(TreapNode **dst, TreapNode *newChild) {
     if (!dst)
         return;
     if (newChild)
@@ -26,7 +40,7 @@ void TreapNode::hang(TreapNode **dst, TreapNode *newChild) {
     *dst = newChild;
 }
 
-void TreapNode::tryToHang(TreapNode **root, TreapNode *newChild) {
+void Treap::TreapNode::tryToHang(TreapNode **root, TreapNode *newChild) {
     if (!newChild)
         return;
     if (newChild->priority_ < priority_) {
@@ -42,16 +56,12 @@ void TreapNode::tryToHang(TreapNode **root, TreapNode *newChild) {
     }
 }
 
-void TreapNode::hangLeft(TreapNode *child) {
-    hang(&left_, child);
-}
-void TreapNode::hangRight(TreapNode *child) {
-    hang(&right_, child);
-}
+void Treap::TreapNode::hangLeft(TreapNode *child) { hang(&left_, child); }
+void Treap::TreapNode::hangRight(TreapNode *child) { hang(&right_, child); }
 
-void TreapNode::detach() {
+void Treap::TreapNode::detach() {
     if (parent_) {
-        if (parent_->left() == this)
+        if (parent_->left_ == this)
             parent_->left_ = nullptr;
         else
             parent_->right_ = nullptr;
@@ -59,7 +69,7 @@ void TreapNode::detach() {
     parent_ = nullptr;
 }
 
-void TreapNode::print() {
+void Treap::TreapNode::print() {
     if (left_)
         left_->print();
     std::cout << "Key: " << key_ << " " << priority_ << std::endl;
