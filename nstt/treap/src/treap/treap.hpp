@@ -4,6 +4,12 @@
 
 #include <map>
 
+#define LOGS
+
+#ifdef LOGS
+#include <iostream>
+#endif
+
 class Treap {
     struct TreapNode {
         TreapNode* left_ = nullptr;
@@ -28,21 +34,24 @@ class Treap {
         void print();
     };
     TreapNode* root_;
-    TreapNode* find_helper(int key, TreapNode* node);
+    bool isValidHelper(Treap::TreapNode* node);
+    TreapNode* findHelper(int key, TreapNode* node);
     Treap(TreapNode* root);
-    friend class TreapTest;
 
    public:
     Treap();
     Treap(int priority, int key);
-    Treap(std::map<int, int>& keysToPriority);
+    Treap(const std::map<int, int>& keysToPriority);
     Treap(const Treap& other);
+    Treap(Treap&& other);
+
     Treap& operator=(const Treap& other);
+    Treap& operator=(Treap&& other);
     bool operator==(const Treap& other);
 
     TreapNode* root() { return root_; }
     bool empty();
-    bool isValid(Treap::TreapNode* node);
+    bool isValid();
     std::pair<Treap*, Treap*> split(int k);
     void merge(Treap*);
     void insert(int priority, int key);

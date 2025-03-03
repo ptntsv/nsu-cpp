@@ -4,8 +4,9 @@
 
 #include <cstdlib>
 #include <queue>
+#include <utility>
 
-bool Treap::isValid(Treap::TreapNode* node) {
+bool Treap::isValidHelper(Treap::TreapNode* node) {
     if (!node)
         return true;
     if (node->left_ && (node->left_->key_ > node->key_ ||
@@ -14,9 +15,8 @@ bool Treap::isValid(Treap::TreapNode* node) {
     if (node->right_ && (node->right_->key_ < node->key_ ||
                          node->right_->priority_ < node->priority_))
         return false;
-    return isValid(node->left_) && isValid(node->right_);
+    return isValidHelper(node->left_) && isValidHelper(node->right_);
 }
-
 void Treap::remove(int k) {
     std::pair<Treap*, Treap*> ts = split(k);
     if (ts.second->empty()) {
@@ -61,6 +61,27 @@ Treap::Treap(int priority, int key) : root_(new TreapNode(priority, key)) {}
 
 Treap::Treap(const Treap& other) : root_(new TreapNode(*other.root_)) {}
 
+Treap::Treap(Treap&& other) {
+    if (this != &other) {
+#ifdef LOGS
+        std::cout << "Move constructor is called!" << std::endl;
+#endif
+        root_ = other.root_;
+        other.root_ = nullptr;
+    }
+}
+
+Treap& Treap::operator=(Treap&& other) {
+    if (this != &other) {
+#ifdef LOGS
+        std::cout << "Move assign operator is called!" << std::endl;
+#endif
+        std::swap(root_, other.root_);
+        delete other.root_;
+    }
+    return *this;
+}
+
 Treap& Treap::operator=(const Treap& other) {
     if (this != &other) {
         delete root_;
@@ -98,7 +119,7 @@ bool Treap::operator==(const Treap& other) {
     return true;
 }
 
-Treap::Treap(std::map<int, int>& keyToPriority) : Treap() {
+Treap::Treap(const std::map<int, int>& keyToPriority) : Treap() {
     TreapNode* prevNode;
     for (std::map<int, int>::const_iterator it = keyToPriority.begin();
          it != keyToPriority.end(); it++) {
@@ -117,16 +138,16 @@ void Treap::print() {
         root_->print();
 }
 
-Treap::TreapNode* Treap::find_helper(int key, TreapNode* node) {
+Treap::TreapNode* Treap::findHelper(int key, TreapNode* node) {
     if (!node || node->key_ == key)
         return node;
     if (key < node->key_)
-        return find_helper(key, node->left_);
+        return findHelper(key, node->left_);
     else
-        return find_helper(key, node->right_);
+        return findHelper(key, node->right_);
 }
 
-Treap::TreapNode* Treap::find(int key) { return find_helper(key, root_); }
+Treap::TreapNode* Treap::find(int key) { return findHelper(key, root_); }
 
 std::pair<Treap*, Treap*> Treap::split(int k) {
     if (root_->key_ < k) {
@@ -181,3 +202,4 @@ void Treap::merge(Treap* t) {
 }
 
 bool Treap::empty() { return root_ == nullptr; }
+bool Treap::isValid() { return isValidHelper(root_); }

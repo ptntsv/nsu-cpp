@@ -9,44 +9,35 @@ using namespace std;
 
 class TreapTest : public testing::Test {
    protected:
-    map<int, int>* initMap;
+    map<int, int> initMap;
     Treap* t;
 
-    bool isValid(Treap::TreapNode* node) {
-        if (!node)
-            return true;
-        if (node->left_ && (node->left_->key_ > node->key_ ||
-                            node->left_->priority_ < node->priority_))
-            return false;
-        if (node->right_ && (node->right_->key_ < node->key_ ||
-                             node->right_->priority_ < node->priority_))
-            return false;
-        return isValid(node->left_) && isValid(node->right_);
-    }
-    TreapTest() {
-        initMap = new map<int, int>{
-            {8, 10}, {12, 8}, {14, 14}, {15, 4},
-            {18, 9}, {23, 6}, {24, 15}, {25, 11},
-        };
-        t = new Treap(*initMap);
-    }
+    TreapTest()
+        : initMap({
+              {8, 10},
+              {12, 8},
+              {14, 14},
+              {15, 4},
+              {18, 9},
+              {23, 6},
+              {24, 15},
+              {25, 11},
+          }),
+          t{new Treap(initMap)} {}
 
-    ~TreapTest() {
-        delete initMap;
-        delete t;
-    }
+    ~TreapTest() { delete t; }
 };
 
 TEST_F(TreapTest, TreapBuilds) {
-    ASSERT_EQ(isValid(t->root()), true);
+    ASSERT_EQ(t->isValid(), true);
     delete t->root();
 }
 
 TEST_F(TreapTest, TreapSplits) {
     std::pair<Treap*, Treap*> two = t->split(20);
 
-    ASSERT_EQ(isValid(two.first->root()), true);
-    ASSERT_EQ(isValid(two.second->root()), true);
+    ASSERT_EQ(two.first->isValid(), true);
+    ASSERT_EQ(two.second->isValid(), true);
 
     delete two.first->root();
     delete two.second->root();
@@ -58,8 +49,8 @@ TEST_F(TreapTest, TreapSplits) {
 TEST_F(TreapTest, TreapSplitsWithEmptyLeft) {
     std::pair<Treap*, Treap*> two = t->split(5);
 
-    ASSERT_EQ(isValid(two.first->root()), true);
-    ASSERT_EQ(isValid(two.second->root()), true);
+    ASSERT_EQ(two.first->isValid(), true);
+    ASSERT_EQ(two.second->isValid(), true);
     ASSERT_EQ(two.first->empty(), true);
     ASSERT_EQ(two.second->empty(), false);
 
@@ -72,8 +63,8 @@ TEST_F(TreapTest, TreapSplitsWithEmptyLeft) {
 TEST_F(TreapTest, TreapSplitsWithEmptyRight) {
     std::pair<Treap*, Treap*> two = t->split(30);
 
-    ASSERT_EQ(isValid(two.first->root()), true);
-    ASSERT_EQ(isValid(two.second->root()), true);
+    ASSERT_EQ(two.first->isValid(), true);
+    ASSERT_EQ(two.second->isValid(), true);
     ASSERT_EQ(two.first->empty(), false);
     ASSERT_EQ(two.second->empty(), true);
 
@@ -88,7 +79,7 @@ TEST_F(TreapTest, TreapMerges20) {
     std::pair<Treap*, Treap*> two = t->split(20);
     two.first->merge(two.second);
 
-    ASSERT_EQ(isValid(two.first->root()), true);
+    ASSERT_EQ(two.first->isValid(), true);
 
     delete two.first->root();
     delete two.first;
@@ -99,7 +90,7 @@ TEST_F(TreapTest, TreapMerges16) {
     std::pair<Treap*, Treap*> two = t->split(16);
     two.first->merge(two.second);
 
-    ASSERT_EQ(isValid(two.first->root()), true);
+    ASSERT_EQ(two.first->isValid(), true);
 
     delete two.first->root();
     delete two.first;
@@ -110,7 +101,7 @@ TEST_F(TreapTest, TreapMergesWithEmptyR) {
     std::pair<Treap*, Treap*> two = t->split(300);
     two.first->merge(two.second);
 
-    ASSERT_EQ(isValid(two.first->root()), true);
+    ASSERT_EQ(two.first->isValid(), true);
 
     delete two.first->root();
     delete two.first;
@@ -121,7 +112,7 @@ TEST_F(TreapTest, TreapMergesWithEmptyL) {
     std::pair<Treap*, Treap*> two = t->split(2);
     two.first->merge(two.second);
 
-    ASSERT_EQ(isValid(two.first->root()), true);
+    ASSERT_EQ(two.first->isValid(), true);
 
     delete two.first->root();
     delete two.first;
@@ -135,11 +126,11 @@ TEST_F(TreapTest, TreapMergesMisc0) {
     Treap t1 = Treap(9, 18);
     Treap t2 = Treap(*init);
 
-    ASSERT_EQ(isValid(t1.root()), true);
-    ASSERT_EQ(isValid(t2.root()), true);
+    ASSERT_EQ(t1.isValid(), true);
+    ASSERT_EQ(t2.isValid(), true);
 
     t1.merge(&t2);
-    ASSERT_EQ(isValid(t1.root()), true);
+    ASSERT_EQ(t1.isValid(), true);
 
     delete init;
     delete t1.root();
@@ -148,14 +139,14 @@ TEST_F(TreapTest, TreapMergesMisc0) {
 
 TEST_F(TreapTest, TreapInserts) {
     t->insert(7, 20);
-    ASSERT_EQ(isValid(t->root()), true);
+    ASSERT_EQ(t->isValid(), true);
     ASSERT_EQ(t->find(20)->priority_, 7);
 
     t->insert(5, 99);
-    ASSERT_EQ(isValid(t->root()), true);
+    ASSERT_EQ(t->isValid(), true);
     ASSERT_EQ(t->find(99)->priority_, 5);
     t->insert(42, 21);
-    ASSERT_EQ(isValid(t->root()), true);
+    ASSERT_EQ(t->isValid(), true);
     ASSERT_EQ(t->find(21)->priority_, 42);
     delete t->root();
 }
@@ -173,14 +164,14 @@ TEST_F(TreapTest, TreapRemovesNull) {
 TEST_F(TreapTest, TreapRemovesRightmost) {
     t->remove(24);
 
-    ASSERT_EQ(isValid(t->root()), true);
+    ASSERT_EQ(t->isValid(), true);
 
     delete t->root();
 }
 
 TEST_F(TreapTest, TreapRemovesAll) {
-    for (map<int, int>::const_iterator it = initMap->begin();
-         it != initMap->end(); it++) {
+    for (map<int, int>::const_iterator it = initMap.begin();
+         it != initMap.end(); it++) {
         t->remove(it->first);
     }
 
@@ -191,7 +182,7 @@ TEST_F(TreapTest, TreapRemovesAll) {
 
 TEST_F(TreapTest, TreapCopyConstructor) {
     Treap twin{*t};
-    ASSERT_TRUE(isValid(twin.root()));
+    ASSERT_TRUE(twin.isValid());
     ASSERT_TRUE(twin == *t);
     twin.insert(69, 96);
     ASSERT_FALSE(twin == *t);
@@ -209,4 +200,42 @@ TEST_F(TreapTest, TreapAssigns) {
     delete t->root();
     delete twin.root();
     delete twin1.root();
+}
+
+Treap foo() {
+    Treap t{42, 21};
+    if (t.isValid()) {
+        return t;
+    }
+    return Treap{0, 0};
+}
+
+TEST_F(TreapTest, TreapMovesFromFoo) {
+    Treap robber = foo();
+    delete robber.root();
+    delete t->root();
+}
+
+TEST_F(TreapTest, TreapMovesWithStdMove) {
+    Treap victim{42, 21};
+    Treap robber = std::move(victim);
+    delete robber.root();
+    delete t->root();
+}
+
+TEST_F(TreapTest, TreapMoveAssignsFromFoo) {
+    Treap robber{7, 8};
+    robber = foo();
+    ASSERT_EQ(robber.root()->key_, 21);
+    delete robber.root();
+    delete t->root();
+}
+
+TEST_F(TreapTest, TreapMoveAssignsStdMove) {
+    Treap victim{42, 21};
+    Treap robber{7, 8};
+    robber = std::move(victim);
+    ASSERT_EQ(robber.root()->key_, 21);
+    delete robber.root();
+    delete t->root();
 }
