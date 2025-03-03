@@ -19,9 +19,9 @@ class Line {
     }
 
     Line(double a, double b, double c) {
-        this->A = a;
-        this->B = b;
-        this->C = c;
+        A = a;
+        B = b;
+        C = c;
     }
 
     bool intersects(const Line& other) const;

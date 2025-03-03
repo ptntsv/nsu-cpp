@@ -5,8 +5,7 @@
 #include <map>
 
 class Treap {
-    class TreapNode {
-       public:
+    struct TreapNode {
         TreapNode* left_ = nullptr;
         TreapNode* right_ = nullptr;
         TreapNode* parent_ = nullptr;
@@ -15,7 +14,7 @@ class Treap {
         TreapNode();
         TreapNode(int priority, int key);
         TreapNode(const TreapNode& other);
-        TreapNode& operator=(const TreapNode& other);
+        TreapNode& operator=(const TreapNode& other) = delete;
         bool operator==(const TreapNode& other);
         bool operator!=(const TreapNode& other);
         ~TreapNode();
@@ -36,13 +35,14 @@ class Treap {
    public:
     Treap();
     Treap(int priority, int key);
-    Treap(std::map<int, int>* keysToPriority);
+    Treap(std::map<int, int>& keysToPriority);
     Treap(const Treap& other);
     Treap& operator=(const Treap& other);
     bool operator==(const Treap& other);
 
     TreapNode* root() { return root_; }
     bool empty();
+    bool isValid(Treap::TreapNode* node);
     std::pair<Treap*, Treap*> split(int k);
     void merge(Treap*);
     void insert(int priority, int key);

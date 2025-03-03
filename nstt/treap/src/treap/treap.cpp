@@ -5,10 +5,25 @@
 #include <cstdlib>
 #include <queue>
 
+bool Treap::isValid(Treap::TreapNode* node) {
+    if (!node)
+        return true;
+    if (node->left_ && (node->left_->key_ > node->key_ ||
+                        node->left_->priority_ < node->priority_))
+        return false;
+    if (node->right_ && (node->right_->key_ < node->key_ ||
+                         node->right_->priority_ < node->priority_))
+        return false;
+    return isValid(node->left_) && isValid(node->right_);
+}
+
 void Treap::remove(int k) {
     std::pair<Treap*, Treap*> ts = split(k);
-    if (ts.second->empty())
+    if (ts.second->empty()) {
+        delete ts.first;
+        delete ts.second;
         return;
+    }
     TreapNode* needle = ts.second->find(k);
     assert(!needle->left_ &&
            (!needle->parent_ || needle->parent_->left_ == needle));
@@ -83,12 +98,12 @@ bool Treap::operator==(const Treap& other) {
     return true;
 }
 
-Treap::Treap(std::map<int, int>* keyToPriority) : Treap() {
+Treap::Treap(std::map<int, int>& keyToPriority) : Treap() {
     TreapNode* prevNode;
-    for (std::map<int, int>::const_iterator it = keyToPriority->begin();
-         it != keyToPriority->end(); it++) {
+    for (std::map<int, int>::const_iterator it = keyToPriority.begin();
+         it != keyToPriority.end(); it++) {
         TreapNode* toAdd = new TreapNode(it->second, it->first);
-        if (it == keyToPriority->begin()) {
+        if (it == keyToPriority.begin()) {
             root_ = toAdd;
         } else {
             prevNode->tryToHang(&root_, toAdd);

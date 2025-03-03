@@ -23,13 +23,12 @@ class TreapTest : public testing::Test {
             return false;
         return isValid(node->left_) && isValid(node->right_);
     }
-
     TreapTest() {
         initMap = new map<int, int>{
             {8, 10}, {12, 8}, {14, 14}, {15, 4},
             {18, 9}, {23, 6}, {24, 15}, {25, 11},
         };
-        t = new Treap(initMap);
+        t = new Treap(*initMap);
     }
 
     ~TreapTest() {
@@ -134,7 +133,7 @@ TEST_F(TreapTest, TreapMergesMisc0) {
         new std::map<int, int>{{19, 15}, {20, 13}, {23, 6}, {25, 11}, {24, 15}};
 
     Treap t1 = Treap(9, 18);
-    Treap t2 = Treap(init);
+    Treap t2 = Treap(*init);
 
     ASSERT_EQ(isValid(t1.root()), true);
     ASSERT_EQ(isValid(t2.root()), true);
@@ -163,6 +162,11 @@ TEST_F(TreapTest, TreapInserts) {
 
 TEST_F(TreapTest, TreapRemoves) {
     t->remove(23);
+    delete t->root();
+}
+
+TEST_F(TreapTest, TreapRemovesNull) {
+    t->remove(228);
     delete t->root();
 }
 
