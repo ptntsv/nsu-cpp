@@ -62,13 +62,11 @@ Treap::Treap(int priority, int key) : root_(new TreapNode(priority, key)) {}
 Treap::Treap(const Treap& other) : root_(new TreapNode(*other.root_)) {}
 
 Treap::Treap(Treap&& other) {
-    if (this != &other) {
 #ifdef LOGS
-        std::cout << "Move constructor is called!" << std::endl;
+    std::cout << "Move constructor is called!" << std::endl;
 #endif
-        root_ = other.root_;
-        other.root_ = nullptr;
-    }
+    root_ = other.root_;
+    other.root_ = nullptr;
 }
 
 Treap& Treap::operator=(Treap&& other) {
