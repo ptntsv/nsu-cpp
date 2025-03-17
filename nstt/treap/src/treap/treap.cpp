@@ -75,7 +75,6 @@ Treap& Treap::operator=(Treap&& other) {
         std::cout << "Move assign operator is called!" << std::endl;
 #endif
         std::swap(root_, other.root_);
-        delete other.root_;
     }
     return *this;
 }
