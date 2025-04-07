@@ -1,5 +1,10 @@
 #pragma once
+#include <iostream>
+#include <map>
 #include <stdexcept>
+#include <string>
+
+#include "../token.hpp"
 
 class Expression;
 
@@ -12,7 +17,9 @@ class Expression {
 public:
     Env* env;
     virtual Expression* eval() = 0;
-    virtual int getVal() { throw std::runtime_error("not val expression"); }
+    virtual int get_value() { throw std::runtime_error("not val expression"); }
+    virtual void print() { std::cout << static_cast<std::string>(*this); }
+    virtual operator std::string() { return ""; };
     virtual ~Expression() {};
 };
 
@@ -35,24 +42,35 @@ class Unary : public Expression {
 };
 
 class Val : public Expression {
-    int value;
+    int value_;
     Expression* eval() { return this; }
-    int getVal() { return value; }
+    int get_value() { return value_; }
 
 public:
-    Val(int value) : value(value) {}
+    Val(int value) : value_(value) {}
+    Val(IntTok* token) : value_(token->value()) {}
+    operator std::string() { return "(val " + std::to_string(value_) + ")"; }
 };
 
 class Add : public Binary {
 public:
     Expression* eval() {
-        return new Val(left->eval()->getVal() + right->eval()->getVal());
+        return new Val(left->eval()->get_value() + right->eval()->get_value());
     }
     Add(Expression* left, Expression* right) : Binary(left, right) {};
+    operator std::string() const {
+        std::string lstr = *left;
+        std::string rstr = *right;
+        return "(add " + lstr + " " + rstr + ")";
+    }
 };
 
 class Var : public Expression {
     const std::string id;
+
+public:
     Var(const std::string& id) : id(id) {}
+    Var(IdTok* token) : id(token->id()) {}
     Expression* eval() {}
+    operator std::string() { return "(var " + id + ")"; }
 };
