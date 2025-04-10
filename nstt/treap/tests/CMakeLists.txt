@@ -7,15 +7,15 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(
-  treap_test
-  treap_test.cpp
+  int_treap_test
+  int_treap_test.cpp
 )
 
 target_link_libraries(
-  treap_test
+  int_treap_test
   treap
   GTest::gtest_main
 )
 
 include(GoogleTest)
-gtest_discover_tests(treap_test)
+gtest_discover_tests(int_treap_test)
