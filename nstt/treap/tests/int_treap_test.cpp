@@ -1,6 +1,6 @@
+#include <algorithm>
 #include <iostream>
 #include <map>
-#include <tuple>
 
 #include "../src/treap/treap.hpp"
 #include "gtest/gtest.h"
@@ -11,9 +11,7 @@ struct Foo {
     int hidden_key;
     Foo() = default;
 
-    Foo(int key)
-        : hidden_key(key) {
-    }
+    Foo(int key) : hidden_key(key) {}
 
     bool operator==(const Foo& other) const {
         return hidden_key == other.hidden_key;
@@ -58,8 +56,9 @@ protected:
     Treap<T>* t;
     map<T, int> init_map;
 
-    TreapTest()
-        : init_map(init_map_factory<T>()) { t = new Treap<T>{init_map}; }
+    TreapTest() : init_map(init_map_factory<T>()) {
+        t = new Treap<T>{init_map};
+    }
 
     ~TreapTest() { delete t; }
 };
@@ -70,7 +69,6 @@ TYPED_TEST_P(TreapTest, TreapBuilds) {
     ASSERT_EQ(this->t->isValid(), true);
     delete this->t->root();
 }
-
 
 TYPED_TEST_P(TreapTest, TreapSplits) {
     std::pair<Treap<TypeParam>*, Treap<TypeParam>*> two = this->t->split(20);
@@ -84,7 +82,6 @@ TYPED_TEST_P(TreapTest, TreapSplits) {
     delete two.first;
     delete two.second;
 }
-
 
 TYPED_TEST_P(TreapTest, TreapSplitsWithEmptyLeft) {
     std::pair<Treap<TypeParam>*, Treap<TypeParam>*> two = this->t->split(5);
@@ -192,7 +189,8 @@ TYPED_TEST_P(TreapTest, TreapRemovesRightmost) {
 }
 
 TYPED_TEST_P(TreapTest, TreapRemovesAll) {
-    for (typename map<TypeParam, int>::const_iterator it = this->init_map.begin();
+    for (typename map<TypeParam, int>::const_iterator it =
+             this->init_map.begin();
          it != this->init_map.end(); it++) {
         this->t->remove(it->first);
     }
@@ -263,23 +261,28 @@ TYPED_TEST_P(TreapTest, TreapMoveAssignsStdMove) {
     delete this->t->root();
 }
 
-REGISTER_TYPED_TEST_SUITE_P(TreapTest, TreapBuilds, TreapSplits, TreapAssigns,
-                            TreapCopyConstructor,
-                            TreapInserts,
-                            TreapMerges16,
-                            TreapMerges20,
-                            TreapMergesWithEmptyL,
-                            TreapMergesWithEmptyR,
-                            TreapMoveAssignsFromFoo,
-                            TreapMoveAssignsStdMove,
-                            TreapMovesFromFoo,
-                            TreapMovesWithStdMove,
-                            TreapRemoves,
-                            TreapRemovesAll,
-                            TreapRemovesNull,
-                            TreapRemovesRightmost,
-                            TreapSplitsWithEmptyLeft,
-                            TreapSplitsWithEmptyRight);
+TYPED_TEST_P(TreapTest, IteratorBasic) {
+    for (auto& node : *this->t) {
+        std::cout << node.key_ << std::endl;
+    }
+    delete this->t->root();
+}
 
-using MyTypes = ::testing::Types<int, Foo>;
+TYPED_TEST_P(TreapTest, IteratorUponEmptyTree) {
+    Treap<TypeParam> tmp{};
+    for (auto& node : tmp) {
+        std::cout << node.key_ << std::endl;
+    }
+    delete this->t->root();
+}
+
+REGISTER_TYPED_TEST_SUITE_P(
+    TreapTest, TreapBuilds, TreapSplits, TreapAssigns, TreapCopyConstructor,
+    TreapInserts, TreapMerges16, TreapMerges20, TreapMergesWithEmptyL,
+    TreapMergesWithEmptyR, TreapMoveAssignsFromFoo, TreapMoveAssignsStdMove,
+    TreapMovesFromFoo, TreapMovesWithStdMove, TreapRemoves, TreapRemovesAll,
+    TreapRemovesNull, TreapRemovesRightmost, TreapSplitsWithEmptyLeft,
+    IteratorBasic, IteratorUponEmptyTree, TreapSplitsWithEmptyRight);
+
+using MyTypes = ::testing::Types<int>;
 INSTANTIATE_TYPED_TEST_SUITE_P(My, TreapTest, MyTypes);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <assert.h>
-#include <gtest/gtest_prod.h>
 
 #include <map>
 #include <queue>
@@ -45,16 +44,13 @@ class Treap {
         }
 
         void hang(TreapNode** dst, TreapNode* newChild) {
-            if (!dst)
-                return;
-            if (newChild)
-                newChild->parent_ = this;
+            if (!dst) return;
+            if (newChild) newChild->parent_ = this;
             *dst = newChild;
         }
 
         void tryToHang(TreapNode** root, TreapNode* newChild) {
-            if (!newChild)
-                return;
+            if (!newChild) return;
             if (newChild->priority_ < priority_) {
                 if (*root == this) {
                     newChild->hangLeft(this);
@@ -80,61 +76,26 @@ class Treap {
         }
 
         void print() {
-            if (left_)
-                left_->print();
+            if (left_) left_->print();
             std::cout << "Key: " << key_ << " " << priority_ << std::endl;
-            if (right_)
-                right_->print();
+            if (right_) right_->print();
         }
     };
     TreapNode* root_ = nullptr;
-    bool isValidHelper(Treap::TreapNode* node) {
-        if (!node)
-            return true;
-        if (node->left_ && (node->left_->key_ > node->key_ ||
-                            node->left_->priority_ < node->priority_))
-            return false;
-        if (node->right_ && (node->right_->key_ < node->key_ ||
-                             node->right_->priority_ < node->priority_))
-            return false;
-        return isValidHelper(node->left_) && isValidHelper(node->right_);
-    }
-    TreapNode* findHelper(T key, TreapNode* node) {
-        if (!node || node->key_ == key)
-            return node;
-        if (key < node->key_)
-            return findHelper(key, node->left_);
-        else
-            return findHelper(key, node->right_);
-    }
+    bool isValidHelper(Treap::TreapNode* node) const;
+    TreapNode* findHelper(T key, TreapNode* node) const;
     Treap(TreapNode* root) : root_(root) {}
 
 public:
+    class iterator;
+
     Treap<T>() = default;
     ~Treap<T>() = default;
     Treap<T>(int priority, T key) : root_(new TreapNode(priority, key)) {}
-    Treap<T>(const std::map<T, int>& keysToPriority) {
-        TreapNode* prevNode;
-        for (typename std::map<T, int>::const_iterator it =
-                 keysToPriority.begin();
-             it != keysToPriority.end(); it++) {
-            TreapNode* toAdd = new TreapNode(it->second, it->first);
-            if (it == keysToPriority.begin()) {
-                root_ = toAdd;
-            } else {
-                prevNode->tryToHang(&root_, toAdd);
-            }
-            prevNode = toAdd;
-        }
-    }
+    Treap<T>(const std::map<T, int>& keysToPriority);
+
     Treap<T>(const Treap<T>& other) : root_(new TreapNode(*other.root_)) {}
-    Treap<T>(Treap<T>&& other) {
-#ifdef LOGS
-        std::cout << "Move constructor is called!" << std::endl;
-#endif
-        root_ = other.root_;
-        other.root_ = nullptr;
-    }
+    Treap<T>(Treap<T>&& other);
 
     Treap<T>& operator=(const Treap<T>& other) {
         if (this != &other) {
@@ -159,123 +120,37 @@ public:
         q1.push(root_);
         q2.push(other.root_);
         while (!q1.empty()) {
-            if (q2.empty())
-                return false;
+            if (q2.empty()) return false;
             TreapNode* n1 = q1.front();
             TreapNode* n2 = q2.front();
             q1.pop();
             q2.pop();
-            if (*n1 != *n2)
-                return false;
-            if (n1->left_)
-                q1.push(n1->left_);
-            if (n1->right_)
-                q1.push(n1->right_);
+            if (*n1 != *n2) return false;
+            if (n1->left_) q1.push(n1->left_);
+            if (n1->right_) q1.push(n1->right_);
 
-            if (n2->left_)
-                q2.push(n2->left_);
-            if (n2->right_)
-                q2.push(n2->right_);
+            if (n2->left_) q2.push(n2->left_);
+            if (n2->right_) q2.push(n2->right_);
         }
-        if (!q2.empty())
-            return false;
+        if (!q2.empty()) return false;
         return true;
     }
 
-    TreapNode* root() { return root_; }
-    bool empty() { return root_ == nullptr; }
-    bool isValid() { return isValidHelper(root_); }
-    std::pair<Treap<T>*, Treap<T>*> split(T k) {
-        if (root_->key_ < k) {
-            if (root_->right_) {
-                std::pair<Treap<T>*, Treap<T>*> R =
-                    Treap<T>(root_->right_).split(k);
-                if (!R.second->empty()) {
-                    R.second->root_->detach();
-                }
-                if (!R.first->empty()) {
-                    R.first->root_->detach();
-                    root_->hangRight(R.first->root_);
-                }
-                delete R.first;
-                R.first = new Treap<T>(root_);
-                return R;
-            }
-            return std::pair<Treap<T>*, Treap<T>*>(new Treap<T>(root_),
-                                                   new Treap<T>());
-        }
-        if (root_->left_) {
-            std::pair<Treap<T>*, Treap<T>*> L = Treap<T>(root_->left_).split(k);
-            if (!L.first->empty()) {
-                L.first->root_->detach();
-            }
-            if (!L.second->empty()) {
-                L.second->root_->detach();
-                root_->hangLeft(L.second->root_);
-            }
-            delete L.second;
-            L.second = new Treap<T>(root_);
-            return L;
-        }
-        return std::pair<Treap<T>*, Treap<T>*>(new Treap<T>(),
-                                               new Treap<T>(root_));
-    }
-    void merge(Treap* t) {
-        if (t->empty())
-            return;
-        if (empty()) {
-            root_ = t->root_;
-            return;
-        }
-        if (root_->priority_ < t->root_->priority_) {
-            Treap subTreap{root_->right_};
-            subTreap.merge(t);
-            root_->hangRight(subTreap.root_);
-            return;
-        }
-        Treap subTreap{t->root_->left_};
-        merge(&subTreap);
-        t->root_->hangLeft(root_);
-        root_ = t->root_;
-    }
-    void insert(int priority, T key) {
-        std::pair<Treap*, Treap*> ts = split(key);
-        Treap sub{priority, key};
-        ts.first->merge(&sub);
-        ts.first->merge(ts.second);
-        root_ = ts.first->root_;
-        delete ts.first;
-        delete ts.second;
-    }
-    void remove(T k) {
-        std::pair<Treap*, Treap*> ts = split(k);
-        if (ts.second->empty()) {
-            delete ts.first;
-            delete ts.second;
-            return;
-        }
-        TreapNode* needle = ts.second->find(k);
-        assert(!needle->left_ &&
-               (!needle->parent_ || needle->parent_->left_ == needle));
-        if (!needle->parent_) {
-            ts.second->root_ = needle->right_;
-            if (needle->right_)
-                needle->right_->detach();
-        } else {
-            needle->parent_->hangLeft(needle->right_);
-        }
-        needle->hangRight(nullptr);
-        ts.first->merge(ts.second);
-        root_ = ts.first->root_;
+    std::pair<Treap<T>*, Treap<T>*> split(T k);
+    void merge(Treap<T>* t);
+    void insert(int priority, T key);
+    void remove(T key);
+    TreapNode* find(T key);
 
-        assert(!needle->left_ && !needle->right_);
-        delete needle;
-        delete ts.first;
-        delete ts.second;
-    };
-    TreapNode* find(T key) { return findHelper(key, root_); }
-    void print() {
-        if (!empty())
-            root_->print();
+    TreapNode* root() { return root_; }
+
+    bool empty() const { return root_ == nullptr; }
+    bool isValid() const { return isValidHelper(root_); }
+    void print() const {
+        if (!empty()) root_->print();
     }
+
+    iterator begin() const;
+    iterator end() const;
 };
+#include "treap.tcc"
